@@ -1,8 +1,6 @@
 # debhelper-generated
 xrdp: package-has-unnecessary-activation-of-ldconfig-trigger
 
-# this is a dlopen()'ed plugin
-xrdp: library-not-linked-against-libc usr/lib/*/xrdp/libmc.so
 
 # as long as we’ll upload to stretch-backports-sloppy
 xrdp: maintainer-script-supports-ancient-package-version
