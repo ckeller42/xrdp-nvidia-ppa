@@ -20,6 +20,7 @@ Build-Depends:
  libtool,
  libx11-dev,
  libxfixes-dev,
+ libxkbfile-dev,
  libxrandr-dev,
  libopenh264-dev,
  libx264-dev,
