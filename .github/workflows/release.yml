@@ -1,0 +1,27 @@
+# Tag v<upstream>-0ppa<N> (matching pins.env) -> signed source uploads to the PPA, then wait for
+# Launchpad's builds. Runs in the protected "release" environment (tag-only, approval required);
+# signs with a dedicated signing subkey, the primary key never leaves the maintainer's machines.
+name: release
+on:
+  push:
+    tags: ['v*']
+jobs:
+  ppa:
+    runs-on: ubuntu-24.04
+    environment: release
+    container: ubuntu:noble
+    timeout-minutes: 300
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - run: apt-get update -qq && apt-get install -y -qq --no-install-recommends git ca-certificates devscripts dpkg-dev debhelper quilt gnupg dput python3-launchpadlib xz-utils
+      - uses: actions/checkout@v4
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: import signing subkey
+        env:
+          PPA_SIGNING_SUBKEY: ${{ secrets.PPA_SIGNING_SUBKEY }}
+        run: printf '%s\n' "$PPA_SIGNING_SUBKEY" | gpg --batch --import
+      - name: release
+        env:
+          PPA_SIGNING_FPR: ${{ secrets.PPA_SIGNING_FPR }}
+        run: ./release.sh --sign "${PPA_SIGNING_FPR}!" --tag "${GITHUB_REF_NAME}"
