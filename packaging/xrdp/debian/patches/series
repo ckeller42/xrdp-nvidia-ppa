@@ -1,0 +1,13 @@
+#make-fixes.diff
+#DONE#config.diff
+#fix_perms.diff
+#systemd.diff
+#lfs.diff
+##pulse-debian.patch
+#OUTDATED#var-run.diff
+document-certs.diff
+#DONE#fix-environment.diff
+#DONE#cherry-pick-dvorak-pr-3112
+sesman.ini
+Configure-xrdp-daemon-to-run-as-xrdp-user.patch
+accel-assist-exit-deadlock.patch

@@ -1,0 +1,7 @@
+#REFACTORED-UPSTREAM#misc-fixes.diff
+#fix_perms.diff
+#lfs.diff
+#NOT-USED-lrandr#glamour.diff
+randr-60hz.patch
+cursor-and-mask.patch
+cursor-alpha-cutoff.patch

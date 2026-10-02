@@ -1,0 +1,122 @@
+From d2ad4891a9e21f8d710fe58b4dd9f71c0621b8e0 Mon Sep 17 00:00:00 2001
+From: Christoph Keller <christoph.keller@gmx.net>
+Date: Fri, 2 Oct 2026 11:58:07 +0200
+Subject: [PATCH] randr: advertise 60 Hz modes instead of 50 Hz
+
+Both RandR implementations advertise a 50 Hz mode: rdpRandR.c via
+dotClock = 50 * width * height (added in 5bd83ec only so that gtk3 does
+not divide by zero; 50 had no other significance), and the local RandR
+(--enable-lrandr, used with the NVIDIA driver) via rep.rate, *rates and
+the mode dotClocks. Compositing window managers pace their frame clock
+to the monitor refresh rate, so e.g. GNOME/mutter sessions were capped
+at 50 fps even with h264_frame_interval=16 (62.5 fps).
+
+Advertise 60 Hz from one constant, RDP_MODE_REFRESH_RATE, in both paths,
+and compute dotClock in CARD32 (its protocol type) to keep headroom for
+large desktops.
+
+A fixed rate rather than one derived from the per-connection frame
+interval: modes outlive connections (reconnects with different settings
+would change the advertised mode), and a compositor rendering faster
+than the capture interval only produces frames that are coalesced by
+damage tracking. 60 matches common client displays and the default
+h264_frame_interval.
+
+Reproduce: xorgxrdp with --enable-lrandr and the NVIDIA driver
+(xorg_nvidia.conf), GNOME 46 Ubuntu session on X11, xrdp GFX H.264
+(NVENC, XRDP_USE_ACCEL_ASSIST=1), client FreeRDP 3.32 /gfx:AVC444;
+run "vblank_mode=0 __GL_SYNC_TO_VBLANK=0 glxgears -geometry 1200x700"
+in the session and sample "nvidia-smi --query-gpu=encoder.stats.averageFps"
+every 3 s.
+Before: 49.6 fps (unchanged for h264_frame_interval 16/12/8, with and
+without other GPU load). After: 59.2 fps; xrandr reports 60.00.
+Non-lrandr path: Xorg with the default xrdpdev xorg.conf, xrandr shows
+1024x768 50.00 before and 60.00 after. lrandr path: repeated
+connect/disconnect/reconnect cycles (FreeRDP) unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VLJpmVyG6ghcutrcFH3F8v
+---
+ module/rdp.h       | 3 +++
+ module/rdpLRandR.c | 8 ++++----
+ module/rdpRandR.c  | 3 +--
+ 3 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/module/rdp.h b/module/rdp.h
+index 8d3a35a..9c94b60 100644
+--- a/module/rdp.h
++++ b/module/rdp.h
+@@ -45,6 +45,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ 
+ #define RDP_MAX_TILES 4096
+ 
++/* refresh rate (Hz) advertised in RandR modes; compositors pace frames to it */
++#define RDP_MODE_REFRESH_RATE 60
++
+ #define COLOR8(r, g, b) \
+     ((((r) >> 5) << 0)  | (((g) >> 5) << 3) | (((b) >> 6) << 6))
+ #define COLOR15(r, g, b) \
+diff --git a/module/rdpLRandR.c b/module/rdpLRandR.c
+index fb2fa94..ce5250a 100644
+--- a/module/rdpLRandR.c
++++ b/module/rdpLRandR.c
+@@ -374,7 +374,7 @@ ProcLRRGetScreenInfo(ClientPtr client)
+     rep.nSizes = 1;
+     rep.nrateEnts = 1 + 1;
+     rep.sizeID = 0;
+-    rep.rate = 50;
++    rep.rate = RDP_MODE_REFRESH_RATE;
+     extraLen = rep.nSizes * sizeof(xScreenSizes);
+     extraLen += rep.nrateEnts * sizeof(CARD16);
+     extra = (CARD8 *) calloc(extraLen, 1);
+@@ -391,7 +391,7 @@ ProcLRRGetScreenInfo(ClientPtr client)
+     size++;
+     *rates = 1; /* number of rates */
+     rates++;
+-    *rates = 50;
++    *rates = RDP_MODE_REFRESH_RATE;
+     rep.length = bytes_to_int32(extraLen);
+     WriteToClient(client, sizeof(rep), &rep);
+     if (extraLen != 0)
+@@ -1173,7 +1173,7 @@ rdpLRRSetRdpOutputs(rdpPtr dev)
+         g_modes[0].height = height;
+         g_modes[0].hTotal = width;
+         g_modes[0].vTotal = height;
+-        g_modes[0].dotClock = 50 * width * height;
++        g_modes[0].dotClock = (CARD32) RDP_MODE_REFRESH_RATE * width * height;
+         snprintf(modeName, LRRMaxModesNameLength, "%dx%d", width, height);
+         g_modes[0].nameLength = strlen(modeName);
+         memcpy(g_modeNames[0], modeName, g_modes[0].nameLength);
+@@ -1200,7 +1200,7 @@ rdpLRRSetRdpOutputs(rdpPtr dev)
+             g_modes[index].height = height;
+             g_modes[index].hTotal = width;
+             g_modes[index].vTotal = height;
+-            g_modes[index].dotClock = 50 * width * height;
++            g_modes[index].dotClock = (CARD32) RDP_MODE_REFRESH_RATE * width * height;
+             snprintf(modeName, LRRMaxModesNameLength, "%dx%d", width, height);
+             g_modes[index].nameLength = strlen(modeName);
+             memcpy(g_modeNames[index], modeName, g_modes[index].nameLength);
+diff --git a/module/rdpRandR.c b/module/rdpRandR.c
+index ac1ad74..d90152c 100644
+--- a/module/rdpRandR.c
++++ b/module/rdpRandR.c
+@@ -420,7 +420,6 @@ rdpRRConnectOutput(RROutputPtr output, RRCrtcPtr crtc,
+     RRModePtr mode;
+     xRRModeInfo modeInfo = {0};
+     char name[64];
+-    const int vfreq = 50;
+ 
+     LOG(LOG_LEVEL_TRACE, "rdpRRConnectOutput:");
+     sprintf (name, "%dx%d", width, height);
+@@ -428,7 +427,7 @@ rdpRRConnectOutput(RROutputPtr output, RRCrtcPtr crtc,
+     modeInfo.height = height;
+     modeInfo.hTotal = width;
+     modeInfo.vTotal = height;
+-    modeInfo.dotClock = vfreq * width * height;
++    modeInfo.dotClock = (CARD32) RDP_MODE_REFRESH_RATE * width * height;
+     modeInfo.nameLength = strlen(name);
+     mode = RRModeGet(&modeInfo, name);
+     if (mode == 0)
+-- 
+2.43.0
+

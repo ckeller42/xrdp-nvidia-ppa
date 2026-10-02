@@ -1,0 +1,12 @@
+# CodeRabbit config for this fork (fork-internal review before upstream PRs).
+language: en-US
+reviews:
+  profile: assertive
+  high_level_summary: true
+  request_changes_workflow: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches: [".*"]
+chat:
+  auto_reply: true

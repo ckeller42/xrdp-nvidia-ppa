@@ -1,0 +1,57 @@
+From 79c0c0db71ada65cdf7dd6792fab60d494fda183 Mon Sep 17 00:00:00 2001
+From: Christoph Keller <christoph.keller@gmx.net>
+Date: Fri, 2 Oct 2026 12:00:20 +0200
+Subject: [PATCH] xrdp-accel-assist: destroy encoders before exit to avoid
+ NVENC hang
+
+When the RDP client disconnects, xrdp-accel-assist detects EOF on the xrdp
+transport, logs "exit" and returns from main() with its NVENC encoder
+sessions still open. exit() then runs an exit handler of NVIDIA's
+libnvcuvid.so.1 (loaded via libnvidia-encode) which joins a worker thread
+that is blocked on a mutex inside libnvcuvid, so the process never
+terminates (Linux, NVIDIA driver 595.84, RTX 3090 Ti, Ubuntu 24.04,
+glibc 2.39).
+
+The helper proxies the xorgxrdp <-> xrdp connection, so Xorg never sees
+EOF on its socketpair, rdpClientConDisconnect() never runs, and every
+disconnected session keeps an NVENC session and ~300 MiB of VRAM until
+the next reconnect or the end of the session.
+
+Destroying the encoders first (xrdp_accel_assist_x11_delete_all_pixmaps(),
+the existing teardown: nvEncDestroyEncoder etc.) avoids the deadlock; the
+process then exits normally. The early error returns in main() happen
+before any encoder exists and are not affected.
+
+Backtrace of the hung helper (all threads, symbols from libc/libcuda/
+libnvcuvid only): thread 1 exit() -> libnvcuvid exit handler -> thread
+join; worker thread pthread_mutex_lock() in libnvcuvid.
+
+Reproduce: Xorg session with the NVIDIA driver (xorg_nvidia.conf),
+XRDP_USE_ACCEL_ASSIST=1, connect with a GFX/H.264 client (FreeRDP 3.32
+/gfx:AVC444), disconnect: before this change the helper stays alive and
+nvidia-smi keeps listing it (3 of 3 attempts).
+Verified: 3 connect/disconnect cycles, helper exits within 10 s each
+time, encoder session count back to 0.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VLJpmVyG6ghcutrcFH3F8v
+---
+ xrdp_accel_assist/xrdp_accel_assist.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/xrdp_accel_assist/xrdp_accel_assist.c b/xrdp_accel_assist/xrdp_accel_assist.c
+index 03709592..2edc3ba1 100644
+--- a/xrdp_accel_assist/xrdp_accel_assist.c
++++ b/xrdp_accel_assist/xrdp_accel_assist.c
+@@ -1027,5 +1027,8 @@ main(int argc, char **argv)
+         }
+     }
+     LOG(LOG_LEVEL_INFO, "exit");
++    /* destroy the encoder sessions before exit(): with live NVENC sessions
++     * an exit handler in NVIDIA's libnvcuvid can deadlock (Linux driver) */
++    xrdp_accel_assist_x11_delete_all_pixmaps();
+     return 0;
+ }
+-- 
+2.43.0
+
