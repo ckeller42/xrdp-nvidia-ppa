@@ -1,0 +1,45 @@
+Source: xrdp-desktop-sessions
+Section: net
+Priority: optional
+Maintainer: Dr. Christoph G. Keller <christoph.keller@gmx.net>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.7.0
+Homepage: https://github.com/ckeller42/xrdp-nvidia-ppa
+Vcs-Git: https://github.com/ckeller42/xrdp-nvidia-ppa.git
+Vcs-Browser: https://github.com/ckeller42/xrdp-nvidia-ppa
+
+Package: xrdp-nvidia-session
+Architecture: all
+Depends: xrdp (>= 0.10.80), xorgxrdp (>= 1:0.10.80), ${misc:Depends}
+Recommends: pipewire-module-xrdp
+Conflicts: thinky-remote-desktop
+Replaces: thinky-remote-desktop
+Description: run xrdp sessions on the NVIDIA GPU with NVENC encoding
+ Detects an NVIDIA GPU at install time and configures xrdp so that every
+ session runs Xorg on the NVIDIA driver (OpenGL/Vulkan on the GPU) and H.264
+ is encoded by NVENC (xrdp-accel-assist). Without an NVIDIA driver nothing is
+ changed. Re-run detection with: dpkg-reconfigure xrdp-nvidia-session
+
+Package: xrdp-gnome-session
+Architecture: all
+Depends: xrdp (>= 0.10.80), ubuntu-session, gnome-shell, dconf-cli, adduser,
+ yaru-theme-gtk, yaru-theme-icon, yaru-theme-gnome-shell, fonts-ubuntu,
+ gnome-shell-extension-ubuntu-dock, gnome-shell-extension-appindicator,
+ ${misc:Depends}
+Recommends: gnome-shell-extension-desktop-icons-ng, gnome-shell-extension-ubuntu-tiling-assistant,
+ yaru-theme-sound, firefox, thunderbird, nautilus, gnome-terminal, gnome-text-editor, gnome-calculator,
+ evince, eog, file-roller, rhythmbox, totem, shotwell, gnome-calendar, gnome-characters, gnome-clocks,
+ gnome-weather, gnome-logs, gnome-system-monitor, gnome-disk-utility, baobab, seahorse, deja-dup,
+ remmina, transmission-gtk, ubuntu-docs, yelp, libreoffice-writer, libreoffice-calc,
+ libreoffice-impress, libreoffice-gnome, libreoffice-style-yaru, nautilus-sendto,
+ gnome-software, flatpak, gnome-software-plugin-flatpak
+Suggests: samba-common-bin, xrdp-nvidia-session
+Conflicts: thinky-remote-desktop
+Replaces: thinky-remote-desktop
+Description: GNOME (Ubuntu session) desktop for xrdp users
+ Makes GNOME with the Ubuntu look the default xrdp desktop (registered as
+ x-session-manager; a user's own ~/.xsession still wins), with defaults for a
+ remote/headless server: no screen lock, no
+ blanking, no suspend, no animations. Provides add-remote-user, which creates
+ a user with one password (also for Samba if installed). Adds Flathub if
+ flatpak is installed.

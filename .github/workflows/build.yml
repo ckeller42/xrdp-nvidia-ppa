@@ -1,0 +1,40 @@
+# Lint + unit tests on every PR/push; clean offline-style package builds per Ubuntu series with lintian.
+name: build
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck pre-commit
+      - run: pre-commit run --all-files --show-diff-on-failure
+      - run: tests/unit/nvidia-detect.sh && tests/unit/gnome-session-script.sh
+  packages:
+    needs: lint
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        series: [noble, resolute]
+    container: ubuntu:${{ matrix.series }}
+    env:
+      CI_NO_PODMAN: "1"
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - run: apt-get update -qq && apt-get install -y -qq --no-install-recommends git ca-certificates devscripts debhelper dpkg-dev quilt equivs fakeroot lintian xz-utils binutils
+      - uses: actions/checkout@v4
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: source packages
+        run: tests/unit/build-source.sh ${{ matrix.series }}
+      - name: binary packages
+        run: tests/unit/test-build.sh ${{ matrix.series }}
+      - name: lintian (errors fail)
+        run: lintian --fail-on error out/${{ matrix.series }}/bin/*.deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: debs-${{ matrix.series }}
+          path: out/${{ matrix.series }}/bin/*.deb

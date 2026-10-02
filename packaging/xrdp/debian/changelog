@@ -6,7 +6,7 @@ xrdp (0.10.80+git9cd6493-1thinky2) noble; urgency=medium
     NVENC encoders before exit so a client
     disconnect releases the NVENC session and GPU memory.
 
- -- ckeller <ckeller@thinky>  Fri, 02 Oct 2026 00:30:00 +0200
+ -- Dr. Christoph G. Keller <christoph.keller@gmx.net>  Fri, 02 Oct 2026 00:30:00 +0200
 
 xrdp (0.10.6-5) unstable; urgency=medium
 

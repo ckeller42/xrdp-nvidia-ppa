@@ -1,0 +1,6 @@
+xrdp-desktop-sessions (1.0) noble; urgency=medium
+
+  * Initial release: xrdp-nvidia-session (GPU detection, NVENC) and
+    xrdp-gnome-session (GNOME desktop defaults, add-remote-user).
+
+ -- Dr. Christoph G. Keller <christoph.keller@gmx.net>  Fri, 02 Oct 2026 12:00:00 +0200

@@ -1,0 +1,13 @@
+#!/bin/sh
+# Back to xrdp's default (software) session config.
+set -e
+if [ "$1" = remove ] || [ "$1" = purge ]; then
+    ini=/etc/xrdp/sesman.ini
+    if [ -f "$ini" ]; then
+        sed -i -e 's|^param=xrdp/xorg_nvidia_auto\.conf$|param=xrdp/xorg.conf|' \
+               -e 's|^XRDP_USE_ACCEL_ASSIST=1$|;XRDP_USE_ACCEL_ASSIST=1|' "$ini"
+    fi
+    rm -f /etc/X11/xrdp/xorg_nvidia_auto.conf
+fi
+#DEBHELPER#
+exit 0

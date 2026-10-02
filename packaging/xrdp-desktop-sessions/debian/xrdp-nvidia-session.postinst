@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+if [ "$1" = configure ]; then
+    xrdp-nvidia-configure || true
+    if [ -d /run/systemd/system ]; then
+        systemctl try-restart xrdp-sesman.service xrdp.service || true
+    fi
+fi
+#DEBHELPER#
+exit 0

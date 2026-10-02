@@ -1,0 +1,2 @@
+files/nvidia/xrdp-nvidia-configure usr/sbin/
+files/nvidia/xorg_nvidia_auto.conf.in usr/share/xrdp-nvidia-session/

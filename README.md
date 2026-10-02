@@ -25,8 +25,8 @@ sudo add-apt-repository ppa:christoph-keller/xrdp-nvidia
 sudo apt install xrdp xorgxrdp xrdp-nvidia-session xrdp-gnome-session
 ```
 
-Requirements for GPU sessions: proprietary NVIDIA driver with `nvidia-drm.modeset=1`. Existing users get the GNOME
-session by copying `/etc/skel/.xsession` to their home. New users: `sudo add-remote-user <name>`.
+Requirements for GPU sessions: proprietary NVIDIA driver with `nvidia-drm.modeset=1`. `xrdp-gnome-session` registers
+GNOME as `x-session-manager`, so every user without an own `~/.xsession` gets it. New users: `sudo add-remote-user <name>`.
 
 Client: **Windows App** (Mac/iPad/Windows), colour quality **High (32 bit)** for H.264. The iPad app has no H.264 and uses RemoteFX.
 
@@ -36,6 +36,17 @@ Client: **Windows App** (Mac/iPad/Windows), colour quality **High (32 bit)** for
 - About 0.5 GB VRAM per active session.
 - Clients that ignore cursor alpha (e.g. Jump Desktop) show a thin shadow outline; set
   `XORGXRDP_CURSOR_ALPHA_CUTOFF=128` under `[SessionVariables]` in `/etc/xrdp/sesman.ini` to drop cursor shadows.
+
+## Development
+
+```sh
+pre-commit install          # commit hooks: whitespace/yaml, shellcheck, unit tests (same as CI)
+tests/unit/nvidia-detect.sh; tests/unit/gnome-session-script.sh
+tests/unit/build-source.sh noble; tests/unit/test-build.sh noble   # full package build (podman)
+```
+
+CI (`.github/workflows/build.yml`): pre-commit + unit tests, then source + binary builds for noble and resolute in
+clean containers with lintian (errors fail).
 
 ## Building
 

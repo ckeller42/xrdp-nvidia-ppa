@@ -1,0 +1,28 @@
+#!/bin/bash
+# Create a remote desktop (xrdp) user with ONE password prompt. If Samba is installed, the same
+# password is set for Samba too. Usage: sudo add-remote-user <username>
+set -euo pipefail
+
+[ "$(id -u)" -eq 0 ] || { echo "run as root (sudo)"; exit 1; }
+u="${1:-}"
+[ -n "$u" ] || { echo "usage: add-remote-user <username>"; exit 1; }
+echo "$u" | grep -qE '^[a-z_][a-z0-9_-]*$' || { echo "invalid username (lowercase, no spaces)"; exit 1; }
+id "$u" &>/dev/null && { echo "user '$u' already exists"; exit 1; }
+
+read -rsp "Password for $u: " pw; echo
+read -rsp "Retype password: " pw2; echo
+[ "$pw" = "$pw2" ] || { echo "passwords do not match"; exit 1; }
+[ -n "$pw" ] || { echo "empty password not allowed"; exit 1; }
+
+# adduser creates home + user-private group; set the password afterwards. The GNOME desktop
+# comes from x-session-manager (xrdp-gnome-session), no ~/.xsession needed.
+adduser --disabled-password --gecos "" "$u"
+printf '%s\n%s\n' "$pw" "$pw" | passwd "$u" >/dev/null
+samba=""
+if command -v smbpasswd >/dev/null; then
+    printf '%s\n%s\n' "$pw" "$pw" | smbpasswd -s -a "$u" >/dev/null
+    samba=" + Samba"
+fi
+
+echo "Created '$u' (Linux$samba password), GNOME desktop for xrdp."
+echo "Connect with Windows App to $(hostname -f) (port 3389) as $u."

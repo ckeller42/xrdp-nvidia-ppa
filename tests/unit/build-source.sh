@@ -10,5 +10,6 @@ grep -q 'librfxcodec/src/rfxencode.c' "$L"; grep -q '/libpainter/src/' "$L"; rm 
 grep -q "^Version: ${XV}-0ppa${PPA_REV}~${S}1\$" out/$S/xrdp_*.dsc
 grep -q "^Version: 1:${OV}-0ppa${PPA_REV}~${S}1\$" out/$S/xorgxrdp_*.dsc
 grep -q "^Distribution: ${S}\$" out/$S/xrdp_*_source.changes
+grep -q "^Version: 1.0~ppa${PPA_REV}~${S}1\$" out/$S/xrdp-desktop-sessions_*.dsc
 dpkg-source -x out/$S/xrdp_*.dsc "$(mktemp -d)/x" >/dev/null   # unpacks + applies all patches
 echo BUILD-SOURCE-OK

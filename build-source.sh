@@ -33,7 +33,7 @@ orig() {  # src commit date -> builds out/<src>_<ver>.orig.tar.xz once, prints v
 
 srcpkg() {  # src fullversion [orig]
   local src=$1 full=$2 orig=${3:-} b=$W/build-$S
-  rm -rf "$b/$src"; mkdir -p "$b/$src"
+  rm -rf "${b:?}/${src:?}"; mkdir -p "$b/$src"
   if [ -n "$orig" ]; then
     tar -xJf "$O/$orig" -C "$b/$src"; ln -sf "$O/$orig" "$b/$src/$orig"
     local dir; dir=$(ls -d "$b/$src"/*/); cp -a "$R/packaging/$src/debian" "$dir"

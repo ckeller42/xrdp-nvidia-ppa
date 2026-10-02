@@ -1,0 +1,32 @@
+#!/bin/sh
+# Configure xrdp sessions for the NVIDIA GPU: write /etc/X11/xrdp/xorg_nvidia_auto.conf for the first
+# NVIDIA GPU and point sesman.ini at it with NVENC (XRDP_USE_ACCEL_ASSIST=1). Without a working NVIDIA
+# driver nothing is changed. Idempotent. Usage: xrdp-nvidia-configure [--root DIR]
+set -e
+ROOT=
+[ "${1:-}" = --root ] && ROOT=$2
+TEMPLATE=${XRDP_NVIDIA_TEMPLATE:-/usr/share/xrdp-nvidia-session/xorg_nvidia_auto.conf.in}
+[ -f "$TEMPLATE" ] || TEMPLATE=$(dirname "$0")/xorg_nvidia_auto.conf.in
+INI=$ROOT/etc/xrdp/sesman.ini
+CONF=$ROOT/etc/X11/xrdp/xorg_nvidia_auto.conf
+
+if [ ! -e "$ROOT/proc/driver/nvidia/version" ]; then
+    echo "xrdp-nvidia-configure: no NVIDIA driver loaded, xrdp sessions unchanged"; exit 0
+fi
+bus=$(nvidia-smi --query-gpu=pci.bus_id --format=csv,noheader 2>/dev/null | head -n 1) || bus=
+if [ -z "$bus" ]; then
+    echo "xrdp-nvidia-configure: nvidia-smi found no GPU, xrdp sessions unchanged"; exit 0
+fi
+# 00000000:41:00.0 (hex, with PCI domain) -> PCI:65:0:0 (decimal, as Xorg's BusID wants it)
+bdf=${bus#*:}; b=${bdf%%:*}; df=${bdf#*:}; d=${df%%.*}; f=${df#*.}
+busid=$(printf 'PCI:%d:%d:%d' "0x$b" "0x$d" "0x$f")
+
+mkdir -p "$(dirname "$CONF")"
+sed "s|@BUSID@|$busid|" "$TEMPLATE" > "$CONF.tmp" && mv "$CONF.tmp" "$CONF"
+if [ -f "$INI" ]; then
+    sed -i -e 's|^param=xrdp/xorg\.conf$|param=xrdp/xorg_nvidia_auto.conf|' \
+           -e 's|^param=xrdp/xorg_nvidia_thinky\.conf$|param=xrdp/xorg_nvidia_auto.conf|' \
+           -e 's|^;XRDP_USE_ACCEL_ASSIST=1$|XRDP_USE_ACCEL_ASSIST=1|' "$INI"
+    grep -q '^XRDP_USE_ACCEL_ASSIST=1$' "$INI" || sed -i '/^\[SessionVariables\]/a XRDP_USE_ACCEL_ASSIST=1' "$INI"
+fi
+echo "xrdp-nvidia-configure: xrdp sessions use the NVIDIA GPU at $busid with NVENC"

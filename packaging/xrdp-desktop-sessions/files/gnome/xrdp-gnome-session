@@ -1,0 +1,19 @@
+#!/bin/sh
+# x-session-manager for xrdp: GNOME (Ubuntu session) on X11.
+# Used by /etc/X11/Xsession when the user has no ~/.xsession.
+# Per-user first-login tweaks are applied here because packages must not ship files in /etc/skel.
+cfg=${XDG_CONFIG_HOME:-$HOME/.config}; data=${XDG_DATA_HOME:-$HOME/.local/share}
+sysxdg=${XRDP_GNOME_SESSION_SYSXDG:-/etc/xdg}
+# Pop!_OS first-login autostarts (folders/COSMIC dock, transition notice): not wanted in GNOME sessions
+for a in pop-app-folders.desktop org.pop_os.transition.Notify.desktop; do
+    if [ -e "$sysxdg/autostart/$a" ] && [ ! -e "$cfg/autostart/$a" ]; then
+        mkdir -p "$cfg/autostart"
+        printf '[Desktop Entry]\nType=Application\nName=disabled by xrdp-gnome-session\nHidden=true\n' > "$cfg/autostart/$a"
+    fi
+done
+# "Screen lock disabled, requires GDM" is shown once unless this marker exists (no GDM in xrdp sessions)
+[ -e "$data/gnome-shell/lock-warning-shown" ] || { mkdir -p "$data/gnome-shell"; : > "$data/gnome-shell/lock-warning-shown"; }
+
+export XDG_SESSION_TYPE=x11 XDG_CURRENT_DESKTOP=ubuntu:GNOME GNOME_SHELL_SESSION_MODE=ubuntu
+export XCURSOR_THEME=${XCURSOR_THEME:-Yaru} XCURSOR_SIZE=${XCURSOR_SIZE:-24}
+exec gnome-session --session=ubuntu "$@"

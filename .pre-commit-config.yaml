@@ -1,0 +1,35 @@
+# Commit hooks: install once with `pre-commit install`. CI runs the same hooks (`pre-commit run --all-files`).
+exclude: '^(work|out)/'
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '^packaging/(xrdp|xorgxrdp)/debian/patches/'
+      - id: end-of-file-fixer
+        exclude: '^packaging/(xrdp|xorgxrdp)/debian/patches/'
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+        exclude: '^packaging/(xrdp|xorgxrdp)/'
+  - repo: local
+    hooks:
+      - id: shellcheck
+        name: shellcheck (own scripts)
+        entry: tests/lint.sh
+        language: system
+        pass_filenames: false
+        files: '\.sh$|^packaging/xrdp-desktop-sessions/|^build-source\.sh$|^test-build\.sh$'
+      - id: unit-nvidia-detect
+        name: unit test xrdp-nvidia-configure
+        entry: tests/unit/nvidia-detect.sh
+        language: system
+        pass_filenames: false
+        files: '^packaging/xrdp-desktop-sessions/files/nvidia/|^tests/unit/(nvidia-detect\.sh|fixtures/)'
+      - id: unit-gnome-session
+        name: unit test xrdp-gnome-session
+        entry: tests/unit/gnome-session-script.sh
+        language: system
+        pass_filenames: false
+        files: '^packaging/xrdp-desktop-sessions/files/gnome/|^tests/unit/gnome-session-script\.sh$'

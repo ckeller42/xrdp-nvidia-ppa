@@ -4,7 +4,7 @@ xorgxrdp (1:0.10.80+git51f60f5-1thinky4) noble; urgency=medium
     XORGXRDP_CURSOR_ALPHA_CUTOFF to drop soft cursor shadows for clients that
     ignore alpha (dark outline in Jump Desktop).
 
- -- ckeller <ckeller@thinky>  Fri, 02 Oct 2026 15:30:00 +0200
+ -- Dr. Christoph G. Keller <christoph.keller@gmx.net>  Fri, 02 Oct 2026 15:30:00 +0200
 
 xorgxrdp (1:0.10.80+git51f60f5-1thinky3) noble; urgency=medium
 
@@ -12,7 +12,7 @@ xorgxrdp (1:0.10.80+git51f60f5-1thinky3) noble; urgency=medium
     transparent 32bpp cursor pixels in the AND mask (black box around the
     pointer with clients that ignore alpha, e.g. Jump Desktop).
 
- -- ckeller <ckeller@thinky>  Fri, 02 Oct 2026 15:00:00 +0200
+ -- Dr. Christoph G. Keller <christoph.keller@gmx.net>  Fri, 02 Oct 2026 15:00:00 +0200
 
 xorgxrdp (1:0.10.80+git51f60f5-1thinky2) noble; urgency=medium
 
@@ -23,7 +23,7 @@ xorgxrdp (1:0.10.80+git51f60f5-1thinky2) noble; urgency=medium
   * randr-60hz.patch (fork ckeller42/xorgxrdp d2ad489): 60 Hz modes in both
     RandR paths (was 50 Hz, capped fps).
 
- -- ckeller <ckeller@thinky>  Fri, 02 Oct 2026 00:30:00 +0200
+ -- Dr. Christoph G. Keller <christoph.keller@gmx.net>  Fri, 02 Oct 2026 00:30:00 +0200
 
 xorgxrdp (1:0.10.5-2) unstable; urgency=medium
 

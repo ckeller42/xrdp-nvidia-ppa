@@ -1,0 +1,5 @@
+files/gnome/xrdp-gnome-session usr/libexec/xrdp-gnome-session/
+files/gnome/add-remote-user usr/sbin/
+files/gnome/00-xrdp-gnome-session etc/dconf/db/local.d/
+files/gnome/locks/00-xrdp-gnome-session etc/dconf/db/local.d/locks/
+files/gnome/system-updater-admins-only.conf usr/lib/systemd/user/com.system76.SystemUpdater.Local.service.d/
