@@ -1,5 +1,7 @@
 # xrdp with NVIDIA NVENC — Ubuntu PPA
 
+[![build](https://github.com/ckeller42/xrdp-nvidia-ppa/actions/workflows/build.yml/badge.svg)](https://github.com/ckeller42/xrdp-nvidia-ppa/actions/workflows/build.yml)
+
 Packaging for **xrdp** and **xorgxrdp** built from upstream `devel` with NVIDIA support, published as
 [`ppa:christoph-keller/xrdp-nvidia`](https://launchpad.net/~christoph-keller/+archive/ubuntu/xrdp-nvidia)
 for Ubuntu **24.04 (noble)** and **26.04 (resolute)**, amd64.
