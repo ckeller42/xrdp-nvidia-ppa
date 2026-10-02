@@ -2,6 +2,8 @@
 """Launchpad PPA checks (anonymous, read-only).
   lp-build-status.py --exists <source> <version>   exit 0 if the version is already in the PPA, else 1
   lp-build-status.py <source> <version> [--timeout S] wait for the builds: 0 all built, 1 failed, 2 timeout
+      --published-binary NAME   additionally wait until binary NAME of that version is published
+                                (needed before uploading packages that build-depend on it)
 """
 import argparse, sys, time
 from launchpadlib.launchpad import Launchpad
@@ -19,6 +21,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--exists", action="store_true")
     ap.add_argument("--timeout", type=int, default=10800)
+    ap.add_argument("--published-binary")
     ap.add_argument("source"); ap.add_argument("version")
     a = ap.parse_args()
     lp = Launchpad.login_anonymously("xrdp-nvidia-ppa", "production", version="devel")
@@ -33,7 +36,12 @@ def main():
         states = [(b.arch_tag, b.buildstate) for p in pubs for b in p.getBuilds()]
         print(f"{a.source} {a.version}: {states or 'not yet accepted'}", flush=True)
         if states and all(s in OK for _, s in states):
-            return 0
+            if not a.published_binary:
+                return 0
+            bins = archive.getPublishedBinaries(binary_name=a.published_binary, version=a.version, exact_match=True)
+            if any(b.status == "Published" for b in bins):
+                return 0
+            print(f"{a.published_binary} {a.version}: built, waiting for publication", flush=True)
         if any(s not in OK and s not in PENDING for _, s in states):
             return 1
         if time.time() > deadline:

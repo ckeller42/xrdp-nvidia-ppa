@@ -26,13 +26,24 @@ echo "release.sh: $want for $SERIES: versions free"
 [ -n "$DRY" ] && exit 0
 first=${SERIES%% *}
 for s in $SERIES; do ./build-source.sh "$s" ${KEY:+--sign "$KEY"} >/dev/null; done
-./upload.sh "$first"
-for _ in $(seq 1 60); do                       # orig tarballs must be accepted before -sd uploads
-    n=0; while read -r src ver; do ./lp-build-status.py --exists "$src" "$ver" >/dev/null && n=$((n+1)); done < <(pkgs "$first")
-    [ "$n" = 3 ] && break; sleep 60
-done
-[ "$n" = 3 ] || { echo "release.sh: $first not accepted after 60 min" >&2; exit 4; }
-for s in $SERIES; do [ "$s" = "$first" ] || ./upload.sh "$s"; done
+accepted() {  # series src... : wait until Launchpad accepted these sources of that series
+    local s=$1; shift; local n want=$#
+    for _ in $(seq 1 60); do
+        n=0; while read -r src ver; do case " $* " in *" $src "*) ./lp-build-status.py --exists "$src" "$ver" >/dev/null && n=$((n+1));; esac; done < <(pkgs "$s")
+        [ "$n" = "$want" ] && return 0; sleep 60
+    done
+    echo "release.sh: $* for $s not accepted after 60 min" >&2; return 4
+}
+upload_all() {  # src... : first series (carries the orig), wait for acceptance, then the others
+    local only; only=$(IFS=,; echo "$*")
+    ./upload.sh "$first" --only "$only"; accepted "$first" "$@"
+    for s in $SERIES; do [ "$s" = "$first" ] || ./upload.sh "$s" --only "$only"; done
+}
+# xorgxrdp build-depends on this PPA's xrdp: upload it only once xrdp is built AND published,
+# otherwise Launchpad parks it in "Dependency wait" for hours.
+upload_all xrdp xrdp-desktop-sessions
+for s in $SERIES; do ./lp-build-status.py xrdp "${xv}~${s}1" --published-binary xrdp | tail -1; done
+upload_all xorgxrdp
 rc=0
 for s in $SERIES; do while read -r src ver; do ./lp-build-status.py "$src" "$ver" | tail -1 || rc=1; done < <(pkgs "$s"); done
 exit $rc
