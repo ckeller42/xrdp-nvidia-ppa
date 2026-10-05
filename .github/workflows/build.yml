@@ -10,7 +10,7 @@ jobs:
   lint:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # gitleaks scans every commit, not just the tip
       - name: secret scan (full git history)
@@ -31,7 +31,7 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
     steps:
       - run: apt-get update -qq && apt-get install -y -qq --no-install-recommends git ca-certificates devscripts debhelper dpkg-dev quilt equivs fakeroot lintian xz-utils binutils autopkgtest
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: source packages
         run: tests/unit/build-source.sh ${{ matrix.series }}
@@ -60,7 +60,7 @@ jobs:
       options: --privileged    # chroot mounts /proc etc.
     steps:
       - run: apt-get update -qq && apt-get install -y -qq --no-install-recommends piuparts debootstrap ca-certificates dpkg-dev
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v4
         with:
           name: debs-${{ matrix.series }}
