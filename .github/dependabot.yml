@@ -1,0 +1,8 @@
+# Weekly PRs bumping the `uses:` GitHub Actions (checkout, upload-artifact, ...). Not covered: the gitleaks
+# image tag in build.yml and the pre-commit hook revs (bump those with `pre-commit autoupdate`).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -17,6 +17,9 @@ read -rsp "Retype password: " pw2; echo
 # adduser creates home + user-private group; set the password afterwards. The GNOME desktop
 # comes from x-session-manager (xrdp-gnome-session), no ~/.xsession needed.
 adduser --disabled-password --gecos "" "$u"
+# RDP sessions are not on the physical seat, so logind grants no GPU device ACLs: video/render
+# give /dev/dri access (e.g. VA-API video decoding in browsers)
+for g in video render; do getent group "$g" >/dev/null && usermod -aG "$g" "$u"; done
 printf '%s\n%s\n' "$pw" "$pw" | passwd "$u" >/dev/null
 samba=""
 if command -v smbpasswd >/dev/null; then

@@ -1,0 +1,18 @@
+Description: use the LVGL login screen by default
+ This package is built with --enable-lvgl; ls_ui=legacy switches back.
+Author: Dr. Christoph G. Keller <christoph.keller@gmx.net>
+Forwarded: not-needed
+---
+--- a/xrdp/xrdp.ini.in
++++ b/xrdp/xrdp.ini.in
+@@ -6,8 +6,8 @@
+ fork=true
+ 
+ ; Optional modern pre-session UI (requires --enable-lvgl).
+-; Legacy remains the default. See docs/lvgl.md for dependencies.
+-ls_ui=legacy
++; This package defaults to the modern UI; set ls_ui=legacy for the classic one.
++ls_ui=lvgl
+ ; ls_font_file=/usr/share/fonts/truetype/quicksand/Quicksand-Regular.ttf
+ 
+ ; ports to listen on, number alone means listen on all interfaces

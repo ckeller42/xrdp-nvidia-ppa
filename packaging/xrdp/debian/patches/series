@@ -11,3 +11,6 @@ document-certs.diff
 sesman.ini
 Configure-xrdp-daemon-to-run-as-xrdp-user.patch
 accel-assist-exit-deadlock.patch
+pam-lastlog-optional.patch
+sesman-port-default.patch
+lvgl-login-default.patch

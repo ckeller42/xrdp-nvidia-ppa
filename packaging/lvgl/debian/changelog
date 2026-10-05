@@ -1,0 +1,7 @@
+lvgl (9.3.0+ds-0ppa1) unstable; urgency=medium
+
+  * Initial package for the xrdp LVGL login screen (ppa:christoph-keller/xrdp-nvidia).
+  * Repacked without demos/, docs/, examples/, tests/, scripts/ and libs/
+    (prebuilt non-free NemaGFX archives).
+
+ -- Dr. Christoph G. Keller <christoph.keller@gmx.net>  Mon, 05 Oct 2026 12:00:00 +0200

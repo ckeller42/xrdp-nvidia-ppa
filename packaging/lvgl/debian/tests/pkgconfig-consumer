@@ -1,0 +1,29 @@
+#!/bin/sh
+# Build a consumer only from `pkg-config lvgl` (like xrdp's configure): the installed headers must find
+# lv_conf.h and their *_private.h, the library must carry FreeType, and the features xrdp needs must work.
+set -eu
+cd "$AUTOPKGTEST_TMP"
+cat > t.c <<'C'
+#include <lvgl.h>
+#include <stdio.h>
+#if !LV_USE_FREETYPE || LV_USE_STDLIB_MALLOC != LV_STDLIB_CLIB || !LV_DRAW_SW_SUPPORT_XRGB8888
+#error lv_conf.h is not the xrdp login configuration
+#endif
+int main(void)
+{
+    lv_init();
+    lv_display_t *d = lv_display_create(320, 240);
+    lv_display_set_color_format(d, LV_COLOR_FORMAT_XRGB8888);
+    lv_font_t *f = lv_freetype_font_create("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        LV_FREETYPE_FONT_RENDER_MODE_BITMAP, 16, LV_FREETYPE_FONT_STYLE_NORMAL);
+    if (f == NULL) { puts("FreeType font failed"); return 1; }
+    lv_freetype_font_delete(f);
+    lv_display_delete(d);
+    lv_deinit();
+    puts("OK");
+    return 0;
+}
+C
+# shellcheck disable=SC2046
+gcc -Wall -o t t.c $(pkg-config --cflags --libs lvgl)
+./t

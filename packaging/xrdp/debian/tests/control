@@ -1,2 +1,6 @@
 Tests: check-privileges
 Restrictions: isolation-container, needs-root
+
+Tests: rdp-handshake
+Depends: @, python3, procps
+Restrictions: isolation-container, needs-root, allow-stderr

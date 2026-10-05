@@ -12,15 +12,16 @@ first=${SERIES%% *}; [ "$S" = "$first" ] && SRCOPT=-sa || SRCOPT=-sd
 export DEBEMAIL="christoph.keller@gmx.net" DEBFULLNAME="Dr. Christoph G. Keller"
 W=$R/work; O=$R/out; mkdir -p "$W/src" "$O/$S"
 
-orig() {  # src commit date -> builds out/<src>_<ver>.orig.tar.xz once, prints ver
-  local src=$1 commit=$2 date=$3 ver d t
-  ver="${UPSTREAM_VERSION}+git${date}.${commit:0:7}"; d=$W/src/$src
+orig() {  # src url commit ver [excluded path...] -> builds out/<src>_<ver>.orig.tar.xz once
+  local src=$1 url=$2 commit=$3 ver=$4 d t ex=(); shift 4
+  [ $# -gt 0 ] && ex=(-- . "${@/#/:!}")   # repack (+ds): leave these paths out
+  d=$W/src/$src
   if [ ! -f "$O/${src}_${ver}.orig.tar.xz" ]; then
-    [ -d "$d/.git" ] || git clone -q https://github.com/neutrinolabs/$src.git "$d"
+    [ -d "$d/.git" ] || git clone -q "$url" "$d"
     git -C "$d" fetch -q origin "$commit"; git -C "$d" checkout -q -f "$commit"
     git -C "$d" submodule -q update --init --recursive
     t=$(mktemp -d); mkdir -m 775 "$t/$src-$ver"   # fixed mode: umask must not change the orig bytes
-    git -C "$d" archive HEAD | tar -x -p -C "$t/$src-$ver"   # -p: git's modes, not umask
+    git -C "$d" archive HEAD "${ex[@]}" | tar -x -p -C "$t/$src-$ver"   # -p: git's modes, not umask
     git -C "$d" submodule --quiet foreach --recursive \
       "git archive HEAD | tar -x -p -C \"$t/$src-$ver/\$displaypath\""
     # reproducible tarball: same bytes on every machine for the same pin
@@ -28,7 +29,6 @@ orig() {  # src commit date -> builds out/<src>_<ver>.orig.tar.xz once, prints v
         -C "$t" -cf - "$src-$ver" | xz -9 -T1 > "$O/${src}_${ver}.orig.tar.xz"
     rm -rf "$t"
   fi
-  echo "$ver"
 }
 
 srcpkg() {  # src fullversion [orig]
@@ -48,7 +48,14 @@ srcpkg() {  # src fullversion [orig]
   return 0
 }
 
-v=$(orig xrdp "$XRDP_COMMIT" "$XRDP_DATE");             srcpkg xrdp "$v-0ppa${PPA_REV}~${S}1" "xrdp_$v.orig.tar.xz"
-v=$(orig xorgxrdp "$XORGXRDP_COMMIT" "$XORGXRDP_DATE"); srcpkg xorgxrdp "1:$v-0ppa${PPA_REV}~${S}1" "xorgxrdp_$v.orig.tar.xz"
+v="${LVGL_VERSION}+ds"
+orig lvgl https://github.com/lvgl/lvgl.git "$LVGL_COMMIT" "$v" demos docs examples tests scripts libs
+srcpkg lvgl "$v-0ppa${PPA_REV}~${S}1" "lvgl_$v.orig.tar.xz"
+v="${UPSTREAM_VERSION}+git${XRDP_DATE}.${XRDP_COMMIT:0:7}"
+orig xrdp https://github.com/neutrinolabs/xrdp.git "$XRDP_COMMIT" "$v"
+srcpkg xrdp "$v-0ppa${PPA_REV}~${S}1" "xrdp_$v.orig.tar.xz"
+v="${UPSTREAM_VERSION}+git${XORGXRDP_DATE}.${XORGXRDP_COMMIT:0:7}"
+orig xorgxrdp https://github.com/neutrinolabs/xorgxrdp.git "$XORGXRDP_COMMIT" "$v"
+srcpkg xorgxrdp "1:$v-0ppa${PPA_REV}~${S}1" "xorgxrdp_$v.orig.tar.xz"
 if [ -d "$R/packaging/xrdp-desktop-sessions" ]; then srcpkg xrdp-desktop-sessions "1.0~ppa${PPA_REV}~${S}1"; fi
 ls -1 "$O/$S"

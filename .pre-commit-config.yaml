@@ -5,14 +5,18 @@ repos:
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-        exclude: '^packaging/(xrdp|xorgxrdp)/debian/patches/'
+        exclude: '^packaging/(xrdp|xorgxrdp|lvgl)/debian/patches/'
       - id: end-of-file-fixer
-        exclude: '^packaging/(xrdp|xorgxrdp)/debian/patches/'
+        exclude: '^packaging/(xrdp|xorgxrdp|lvgl)/debian/patches/'
       - id: check-yaml
       - id: check-merge-conflict
       - id: check-executables-have-shebangs
       - id: check-shebang-scripts-are-executable
         exclude: '^packaging/(xrdp|xorgxrdp)/'
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks          # staged changes; CI also scans the full history and the built debs
   - repo: local
     hooks:
       - id: shellcheck

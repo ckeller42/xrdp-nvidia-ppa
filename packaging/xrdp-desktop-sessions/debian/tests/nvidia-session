@@ -1,0 +1,13 @@
+#!/bin/sh
+# The installed configure tool in a fixture root without an NVIDIA driver: a no-op that keeps xrdp's
+# software session. (--root: never touches this host's /etc, even on a machine with an NVIDIA GPU.)
+set -eu
+r=$AUTOPKGTEST_TMP/root
+mkdir -p "$r/etc/xrdp" "$r/etc/X11/xrdp"
+cp /etc/xrdp/sesman.ini "$r/etc/xrdp/"
+xrdp-nvidia-configure --root "$r"
+cmp "$r/etc/xrdp/sesman.ini" /etc/xrdp/sesman.ini
+grep -qx 'param=xrdp/xorg.conf' "$r/etc/xrdp/sesman.ini"
+test ! -e "$r/etc/X11/xrdp/xorg_nvidia_auto.conf"
+test -f /usr/share/xrdp-nvidia-session/xorg_nvidia_auto.conf.in
+echo OK

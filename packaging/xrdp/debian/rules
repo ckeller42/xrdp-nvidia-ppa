@@ -73,6 +73,7 @@ override_dh_auto_configure:
 	./configure \
 	    --enable-ipv6 \
 	    --enable-nvenc \
+	    --enable-lvgl \
 	    --enable-pixman \
 	    --enable-jpeg \
 	    --enable-fuse \
@@ -115,8 +116,6 @@ override_dh_auto_install:
 	find debian/xrdp/usr/lib/ -name \*.a -print0 | \
 	    xargs -0 strip --strip-debug -R .comment --
 
-override_dh_auto_test:
-	@echo skip tests
 
 override_dh_installchangelogs:
 	dh_installchangelogs -pxrdp -- NEWS.md

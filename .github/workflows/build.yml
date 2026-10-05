@@ -1,4 +1,5 @@
-# Lint + unit tests on every PR/push; clean offline-style package builds per Ubuntu series with lintian.
+# Lint + unit tests + secret scan on every PR/push; clean offline-style package builds per Ubuntu series with
+# lintian and autopkgtest; piuparts install/upgrade/purge; secret scan of the built debs' contents.
 name: build
 on:
   pull_request:
@@ -10,6 +11,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # gitleaks scans every commit, not just the tip
+      - name: secret scan (full git history)
+        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git --redact -v /repo
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck pre-commit
       - run: pre-commit run --all-files --show-diff-on-failure
       - run: tests/unit/nvidia-detect.sh && tests/unit/gnome-session-script.sh
@@ -25,7 +30,7 @@ jobs:
       CI_NO_PODMAN: "1"
       DEBIAN_FRONTEND: noninteractive
     steps:
-      - run: apt-get update -qq && apt-get install -y -qq --no-install-recommends git ca-certificates devscripts debhelper dpkg-dev quilt equivs fakeroot lintian xz-utils binutils
+      - run: apt-get update -qq && apt-get install -y -qq --no-install-recommends git ca-certificates devscripts debhelper dpkg-dev quilt equivs fakeroot lintian xz-utils binutils autopkgtest
       - uses: actions/checkout@v4
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: source packages
@@ -37,7 +42,39 @@ jobs:
         run: tests/unit/test-build.sh ${{ matrix.series }}
       - name: lintian (errors fail)
         run: lintian --fail-on error out/${{ matrix.series }}/bin/*.deb
+      - name: autopkgtest (debian/tests against the built debs)
+        run: tests/autopkgtest.sh ${{ matrix.series }}
       - uses: actions/upload-artifact@v4
         with:
           name: debs-${{ matrix.series }}
           path: out/${{ matrix.series }}/bin/*.deb
+  piuparts:
+    needs: packages
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        series: [noble, resolute]
+    container:
+      image: ubuntu:resolute   # piuparts is only packaged from resolute on; it debootstraps the target series
+      options: --privileged    # chroot mounts /proc etc.
+    steps:
+      - run: apt-get update -qq && apt-get install -y -qq --no-install-recommends piuparts debootstrap ca-certificates dpkg-dev
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: debs-${{ matrix.series }}
+          path: out/${{ matrix.series }}/bin
+      - run: tests/piuparts.sh ${{ matrix.series }}
+  deb-secrets:
+    needs: packages
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: debs
+      - name: secret scan (text files + maintainer scripts of every built deb; gitleaks skips binaries)
+        run: |
+          mkdir -p unpacked
+          for d in debs/*/*.deb; do x=unpacked/$(basename "$d" .deb); dpkg-deb -R "$d" "$x"; done
+          docker run --rm -v "$PWD/unpacked:/scan" ghcr.io/gitleaks/gitleaks:v8.30.1 dir --redact -v /scan

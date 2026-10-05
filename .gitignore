@@ -1,3 +1,4 @@
 out/
 work/
 tests/cursor/pointer-dump.so
+__pycache__/

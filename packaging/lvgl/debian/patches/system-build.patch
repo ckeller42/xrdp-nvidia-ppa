@@ -1,0 +1,42 @@
+Description: system build: link FreeType, usable pkg-config file
+ - LV_USE_FREETYPE: find freetype2 via pkg-config, link the shared library to it
+   (upstream leaves this as a TODO in os_desktop.cmake).
+ - lvgl.pc: multiarch libdir, and -DLV_CONF_INCLUDE_SIMPLE so <lvgl.h> finds the
+   installed lv_conf.h next to it (the default ../../lv_conf.h points one level too high).
+Author: Dr. Christoph G. Keller <christoph.keller@gmx.net>
+Forwarded: no
+---
+diff --git env_support/cmake/os_desktop.cmake env_support/cmake/os_desktop.cmake
+index 5c6b05e..ef70d0e 100644
+--- a/env_support/cmake/os_desktop.cmake
++++ b/env_support/cmake/os_desktop.cmake
+@@ -69,6 +69,12 @@ file(GLOB_RECURSE THORVG_SOURCES ${LVGL_ROOT_DIR}/src/libs/thorvg/*.cpp
+ add_library(lvgl ${SOURCES})
+ add_library(lvgl::lvgl ALIAS lvgl)
+ 
++# LV_USE_FREETYPE needs the system FreeType: include path and link (the
++# shared library must carry the dependency itself)
++find_package(PkgConfig REQUIRED)
++pkg_check_modules(LV_FREETYPE REQUIRED IMPORTED_TARGET freetype2)
++target_link_libraries(lvgl PRIVATE PkgConfig::LV_FREETYPE)
++
+ if (NOT LV_BUILD_USE_KCONFIG)
+ 
+     # Default - use the lv_conf.h configuration file
+diff --git lvgl.pc.in lvgl.pc.in
+index db5eb72..bbe4cb3 100644
+--- a/lvgl.pc.in
++++ b/lvgl.pc.in
+@@ -1,10 +1,10 @@
+ prefix="@CMAKE_INSTALL_PREFIX@"
+ includedir="${prefix}/@INC_INSTALL_DIR@"
+-libdir=${prefix}/lib
++libdir=${prefix}/@LIB_INSTALL_DIR@
+ 
+ Name: lvgl
+ Description: Light and Versatile Graphics Library
+ URL: https://lvgl.io/
+ Version: @LVGL_VERSION@
+-Cflags: -I${includedir}
++Cflags: -I${includedir} -DLV_CONF_INCLUDE_SIMPLE
+ Libs: -L${libdir} -llvgl

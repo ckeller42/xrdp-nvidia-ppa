@@ -1,0 +1,3 @@
+Tests: nvidia-session
+Depends: xrdp-nvidia-session
+Restrictions: needs-root, allow-stderr
