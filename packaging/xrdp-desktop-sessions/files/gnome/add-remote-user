@@ -26,3 +26,12 @@ fi
 
 echo "Created '$u' (Linux$samba password), GNOME desktop for xrdp."
 echo "Connect with Windows App to $(hostname -f) (port 3389) as $u."
+if [ -n "$samba" ]; then
+    # passwd only changes Linux (PAM can't hand the new password to Samba); smbpasswd via smbd
+    # changes both, but only with 'unix password sync = yes' in smb.conf
+    if [ "$(testparm -s --parameter-name='unix password sync' 2>/dev/null)" = Yes ]; then
+        echo "To change the password later: run 'smbpasswd' as $u (changes Linux + Samba; plain 'passwd' only changes Linux)."
+    else
+        echo "Note: Linux and Samba passwords are separate from now on ('passwd' and 'smbpasswd')."
+    fi
+fi
