@@ -1,3 +1,13 @@
+lvgl (9.3.0+ds2-0ppa1) unstable; urgency=medium
+
+  * Repack +ds2: also drop src/libs/freetype/arial.ttf (test asset, not
+    redistributable) and the SimSun-derived glyph data (src/font/lv_font_simsun_*).
+  * debian/copyright: stanzas and full texts for all bundled third-party code
+    and the built-in fonts.
+  * lv_conf.h: LV_ASSERT_HANDLER abort() instead of spinning forever.
+
+ -- Dr. Christoph G. Keller <christoph.keller@gmx.net>  Mon, 05 Oct 2026 19:30:00 +0200
+
 lvgl (9.3.0+ds-0ppa1) unstable; urgency=medium
 
   * Initial package for the xrdp LVGL login screen (ppa:christoph-keller/xrdp-nvidia).
