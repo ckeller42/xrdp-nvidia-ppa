@@ -44,7 +44,7 @@ jobs:
         run: lintian --fail-on error out/${{ matrix.series }}/bin/*.deb
       - name: autopkgtest (debian/tests against the built debs)
         run: tests/autopkgtest.sh ${{ matrix.series }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: debs-${{ matrix.series }}
           path: out/${{ matrix.series }}/bin/*.deb
