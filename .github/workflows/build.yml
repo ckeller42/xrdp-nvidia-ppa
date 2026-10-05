@@ -61,7 +61,7 @@ jobs:
     steps:
       - run: apt-get update -qq && apt-get install -y -qq --no-install-recommends piuparts debootstrap ca-certificates dpkg-dev
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: debs-${{ matrix.series }}
           path: out/${{ matrix.series }}/bin
@@ -70,7 +70,7 @@ jobs:
     needs: packages
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: debs
       - name: secret scan (text files + maintainer scripts of every built deb; gitleaks skips binaries)
