@@ -1,0 +1,18 @@
+Description: pam: load pam_lastlog only if present
+ pam_lastlog.so is gone from Ubuntu 24.04+ (and Debian trixie); every login then
+ logs "PAM unable to dlopen(pam_lastlog.so)". The '-' prefix skips a missing module
+ silently and still uses it where it exists.
+Author: Dr. Christoph G. Keller <christoph.keller@gmx.net>
+Forwarded: no
+---
+--- a/instfiles/pam.d/xrdp-sesman.debian
++++ b/instfiles/pam.d/xrdp-sesman.debian
+@@ -14,7 +14,7 @@
+ # Set the loginuid process attribute.
+ session    required     pam_loginuid.so
+ # Update wtmp/lastlog
+-session    optional     pam_lastlog.so quiet
++-session   optional     pam_lastlog.so quiet
+ @include common-session
+ -session optional  pam_gnome_keyring.so auto_start
+ -session optional  pam_kwallet5.so auto_start
