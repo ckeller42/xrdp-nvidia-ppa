@@ -27,6 +27,8 @@ Build-Depends:
  libmp3lame-dev,
  libpixman-1-dev,
  libepoxy-dev,
+ libfontconfig-dev,
+ liblvgl-dev (>= 9.3),
  libegl-dev,
  libgl-dev,
  nasm [amd64 hurd-i386 i386],
@@ -48,6 +50,7 @@ Depends:
  ${misc:Depends},
  ${shlibs:Depends},
 Recommends:
+ fonts-quicksand,
  pipewire-module-xrdp,
  xorgxrdp,
 Suggests:
