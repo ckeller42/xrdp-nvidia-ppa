@@ -1,0 +1,11 @@
+#!/bin/sh
+# Without an NVIDIA GPU (CI): the configure tool is a no-op, sesman.ini keeps xrdp's software session.
+set -eu
+ini=/etc/xrdp/sesman.ini
+cp "$ini" "$AUTOPKGTEST_TMP/before"
+xrdp-nvidia-configure
+cmp "$ini" "$AUTOPKGTEST_TMP/before"
+grep -qx 'param=xrdp/xorg.conf' "$ini"
+test ! -e /etc/X11/xrdp/xorg_nvidia_auto.conf
+test -f /usr/share/xrdp-nvidia-session/xorg_nvidia_auto.conf.in
+echo OK

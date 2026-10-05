@@ -6,5 +6,6 @@ shellcheck -S warning build-source.sh test-build.sh upload.sh release.sh tests/*
   packaging/xrdp-desktop-sessions/files/gnome/xrdp-gnome-session \
   packaging/xrdp-desktop-sessions/files/gnome/add-remote-user \
   packaging/xrdp-desktop-sessions/debian/*.postinst packaging/xrdp-desktop-sessions/debian/*.postrm \
-  packaging/xrdp-desktop-sessions/debian/*.prerm
+  packaging/xrdp-desktop-sessions/debian/*.prerm packaging/xrdp-desktop-sessions/debian/tests/nvidia-session \
+  packaging/xrdp/debian/tests/rdp-handshake
 echo LINT-OK
