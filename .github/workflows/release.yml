@@ -15,7 +15,7 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
     steps:
       - run: apt-get update -qq && apt-get install -y -qq --no-install-recommends git ca-certificates devscripts dpkg-dev debhelper quilt gnupg dput python3-launchpadlib xz-utils
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: import signing subkey
         env:
