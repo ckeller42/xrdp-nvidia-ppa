@@ -24,9 +24,10 @@ Package: xrdp-gnome-session
 Architecture: all
 Depends: xrdp (>= 0.10.80), ubuntu-session, gnome-shell, dconf-cli, adduser,
  yaru-theme-gtk, yaru-theme-icon, yaru-theme-gnome-shell, fonts-ubuntu,
- gnome-shell-extension-ubuntu-dock, gnome-shell-extension-appindicator,
+ gnome-shell-extension-ubuntu-dock, gnome-shell-extension-appindicator, ubuntu-settings,
  ${misc:Depends}
-Recommends: gnome-shell-extension-desktop-icons-ng, gnome-shell-extension-ubuntu-tiling-assistant,
+Recommends: ubuntu-wallpapers, dmz-cursor-theme, xdg-desktop-portal-gnome, gnome-shell-extension-prefs,
+ gnome-shell-extension-desktop-icons-ng, gnome-shell-extension-ubuntu-tiling-assistant,
  yaru-theme-sound, firefox, thunderbird, nautilus, gnome-terminal, gnome-text-editor, gnome-calculator,
  evince, eog, file-roller, rhythmbox, totem, shotwell, gnome-calendar, gnome-characters, gnome-clocks,
  gnome-weather, gnome-logs, gnome-system-monitor, gnome-disk-utility, baobab, seahorse, deja-dup,
