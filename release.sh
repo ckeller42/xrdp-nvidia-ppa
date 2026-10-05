@@ -15,7 +15,7 @@ if [ -n "$TAG" ] && [ "$TAG" != "$want" ]; then echo "release.sh: tag $TAG != $w
 xv="${UPSTREAM_VERSION}+git${XRDP_DATE}.${XRDP_COMMIT:0:7}-0ppa${PPA_REV}"
 ov="1:${UPSTREAM_VERSION}+git${XORGXRDP_DATE}.${XORGXRDP_COMMIT:0:7}-0ppa${PPA_REV}"
 sv="1.0~ppa${PPA_REV}"
-lv="${LVGL_VERSION}+ds-0ppa${PPA_REV}"
+lv="${LVGL_VERSION}+${LVGL_REPACK}-0ppa${PPA_REV}"
 pkgs() { echo "lvgl ${lv}~${1}1"; echo "xrdp ${xv}~${1}1"; echo "xorgxrdp ${ov}~${1}1"; echo "xrdp-desktop-sessions ${sv}~${1}1"; }
 # Resumable: packages already in the PPA (e.g. after a failed upload) are skipped; only a fully
 # released tag is refused.

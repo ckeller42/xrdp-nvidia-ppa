@@ -48,8 +48,9 @@ srcpkg() {  # src fullversion [orig]
   return 0
 }
 
-v="${LVGL_VERSION}+ds"
-orig lvgl https://github.com/lvgl/lvgl.git "$LVGL_COMMIT" "$v" demos docs examples tests scripts libs
+v="${LVGL_VERSION}+${LVGL_REPACK}"   # repack: non-free (prebuilt libs/, Arial, SimSun data) + unused trees out
+orig lvgl https://github.com/lvgl/lvgl.git "$LVGL_COMMIT" "$v" demos docs examples tests scripts libs \
+  src/libs/freetype/arial.ttf 'src/font/lv_font_simsun_*'
 srcpkg lvgl "$v-0ppa${PPA_REV}~${S}1" "lvgl_$v.orig.tar.xz"
 v="${UPSTREAM_VERSION}+git${XRDP_DATE}.${XRDP_COMMIT:0:7}"
 orig xrdp https://github.com/neutrinolabs/xrdp.git "$XRDP_COMMIT" "$v"
