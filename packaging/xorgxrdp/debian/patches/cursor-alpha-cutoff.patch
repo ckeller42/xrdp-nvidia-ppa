@@ -1,4 +1,4 @@
-From 9916084e4f09229099105bb86d83fe72b260ad18 Mon Sep 17 00:00:00 2001
+From 5ad6babbab18c861b3bc1eedc490bdbdb88c8de5 Mon Sep 17 00:00:00 2001
 From: Christoph Keller <christoph.keller@gmx.net>
 Date: Fri, 2 Oct 2026 14:56:11 +0200
 Subject: [PATCH] cursor: optional alpha cutoff for clients that ignore cursor
@@ -26,7 +26,7 @@ Claude-Session: https://claude.ai/code/session_01VLJpmVyG6ghcutrcFH3F8v
  1 file changed, 34 insertions(+)
 
 diff --git a/module/rdpCursor.c b/module/rdpCursor.c
-index 784a7a0..3d80a42 100644
+index cc84745..0054d82 100644
 --- a/module/rdpCursor.c
 +++ b/module/rdpCursor.c
 @@ -220,6 +220,34 @@ set_pixel_safe(uint8_t *data, int x, int y, int width, int height, int bpp,
@@ -88,9 +88,9 @@ index 784a7a0..3d80a42 100644
 +                    {
 +                        pixel = 0;
 +                    }
-                     set_pixel_safe(cur_data, index,
-                                    (sending_height - 1) - jndex,
-                                    sending_width, sending_height, 32, pixel);
+                     /* fully transparent: mark in the AND mask too, and
+                      * clear the colour (XOR) bytes, for clients that
+                      * ignore the alpha channel */
 -- 
 2.43.0
 

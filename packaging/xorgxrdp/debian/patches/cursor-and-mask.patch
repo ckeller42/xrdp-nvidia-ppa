@@ -1,4 +1,4 @@
-From f04d7d5f4d5628927f5c09f93f345e4e07ffe470 Mon Sep 17 00:00:00 2001
+From 47ae3cff765f5991ef828a1b78e4150762bb376e Mon Sep 17 00:00:00 2001
 From: Christoph Keller <christoph.keller@gmx.net>
 Date: Fri, 2 Oct 2026 14:32:49 +0200
 Subject: [PATCH] cursor: mark fully transparent 32bpp pixels in the AND mask
@@ -8,10 +8,11 @@ mask and relies on the client honouring the alpha channel. Clients that
 ignore alpha (e.g. Jump Desktop) treat every pixel as opaque and draw the
 transparent area around the pointer as a black box.
 
-Set the AND mask bit for pixels whose alpha is 0. Their XOR value is 0
-(premultiplied ARGB), so AND=1/XOR=0 is transparent for every client;
-alpha-aware clients render exactly as before. Semi-transparent pixels
-(e.g. shadows) are unchanged.
+Set the AND mask bit for pixels whose alpha is 0 and clear their XOR
+bytes, so AND=1/XOR=0 is transparent for every client. (Premultiplied
+ARGB already has RGB 0 there; a non-premultiplied cursor would otherwise
+leave a colour fringe.) Alpha-aware clients render exactly as before.
+Semi-transparent pixels (e.g. shadows) are unchanged.
 
 Reproduce/verify without such a client: dump the pointer PDUs a FreeRDP
 client receives (LD_PRELOAD on freerdp_image_copy_from_pointer_data) and
@@ -21,28 +22,30 @@ count alpha==0 pixels not covered by the AND mask. Yaru cursor (GNOME,
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01VLJpmVyG6ghcutrcFH3F8v
 ---
- module/rdpCursor.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ module/rdpCursor.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
 diff --git a/module/rdpCursor.c b/module/rdpCursor.c
-index e199653..784a7a0 100644
+index e199653..cc84745 100644
 --- a/module/rdpCursor.c
 +++ b/module/rdpCursor.c
-@@ -325,6 +325,14 @@ rdpSpriteSetCursorCon(rdpClientCon *clientCon,
-                     set_pixel_safe(cur_data, index,
-                                    (sending_height - 1) - jndex,
-                                    sending_width, sending_height, 32, pixel);
-+                    /* fully transparent: mark in the AND mask too, for
-+                     * clients that ignore the alpha channel */
+@@ -322,6 +322,16 @@ rdpSpriteSetCursorCon(rdpClientCon *clientCon,
+                     pixel = get_pixel_safe(data, index, jndex,
+                                            paddedRowBytes / 4,
+                                            server_height, 32);
++                    /* fully transparent: mark in the AND mask too, and
++                     * clear the colour (XOR) bytes, for clients that
++                     * ignore the alpha channel */
 +                    if ((pixel & 0xff000000) == 0)
 +                    {
++                        pixel = 0;
 +                        set_pixel_safe(cur_mask, index,
 +                                       (sending_height - 1) - jndex,
 +                                       sending_width, sending_height, 1, 1);
 +                    }
-                 }
-             }
-         }
+                     set_pixel_safe(cur_data, index,
+                                    (sending_height - 1) - jndex,
+                                    sending_width, sending_height, 32, pixel);
 -- 
 2.43.0
 
