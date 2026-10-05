@@ -2,10 +2,12 @@
 
 set -eu
 
-# This is a manual step, documented (via a Debian patch) in xrdp.ini,
-# without it the script gives us this error line:
+# Our postinst adds xrdp to ssl-cert (snakeoil key); without it the script gives us this error line:
 # [  NG  ] /etc/xrdp/key.pem is not readable by xrdp:xrdp
-adduser xrdp ssl-cert
+if ! id -nG xrdp | grep -qw ssl-cert; then
+    echo "postinst did not add xrdp to ssl-cert" >&2
+    exit 1
+fi
 
 echo "Checking if xrdp is properly configured to run in non-privileged mode..."
 echo "$ /usr/share/xrdp/xrdp-chkpriv"
