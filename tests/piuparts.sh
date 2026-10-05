@@ -11,7 +11,7 @@ cd "$(dirname "$0")/.."; S=${1:?usage: piuparts.sh <series>}; B=$PWD/out/$S/bin
 common=(-d "$S" --mirror "http://archive.ubuntu.com/ubuntu main universe" --warn-on-debsums-errors
         --ignore=/lib.usr-is-merged/)   # marker of the usr-merge transition in a bare debootstrap, not ours
 # ponytail: xrdp-gnome-session left out, it pulls in the whole GNOME desktop (~1 GB); add if its scripts grow
-piuparts "${common[@]}" "$B"/liblvgl9_*.deb "$B"/xrdp_*.deb "$B"/xorgxrdp_*.deb "$B"/xrdp-nvidia-session_*.deb
+piuparts "${common[@]}" "$B"/liblvgl9_*.deb "$B"/liblvgl-dev_*.deb "$B"/xrdp_*.deb "$B"/xorgxrdp_*.deb "$B"/xrdp-nvidia-session_*.deb
 # local repo with ONLY what Ubuntu lacks (liblvgl9): the "old" install must come from the archive
 R=$PWD/work/piuparts-repo-$S; rm -rf "$R"; mkdir -p "$R"; cp "$B"/liblvgl9_*.deb "$R/"
 (cd "$R" && dpkg-scanpackages . /dev/null > Packages 2>/dev/null)

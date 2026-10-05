@@ -5,7 +5,7 @@ set -uo pipefail
 F=$(cd "$(dirname "$0")/.." && pwd)/work/freerdp
 XFREERDP=${XFREERDP:-$F/bin/xfreerdp}; export LD_LIBRARY_PATH=$F/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 OUT=$1 PORT=${2:-3389}
-xvfb-run -a -s "-screen 0 1280x800x24" bash -c "
-  '$XFREERDP' /v:127.0.0.1:$PORT /cert:ignore /size:1280x800 /gfx:AVC444:on /sec:tls /u:skeller /d: /p: >/dev/null 2>&1 &
-  sleep 8; xwd -root -silent -out '$OUT'; kill %1" 2>/dev/null
+xvfb-run -a -s "-screen 0 1280x800x24" bash -c '
+  "$1" /v:127.0.0.1:"$2" /cert:ignore /size:1280x800 /gfx:AVC444:on /sec:tls /u:skeller /d: /p: >/dev/null 2>&1 &
+  pid=$!; sleep 8; xwd -root -silent -out "$3"; kill "$pid" 2>/dev/null' _ "$XFREERDP" "$PORT" "$OUT"
 [ -s "$OUT" ]
