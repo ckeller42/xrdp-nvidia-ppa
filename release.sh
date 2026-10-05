@@ -16,13 +16,18 @@ xv="${UPSTREAM_VERSION}+git${XRDP_DATE}.${XRDP_COMMIT:0:7}-0ppa${PPA_REV}"
 ov="1:${UPSTREAM_VERSION}+git${XORGXRDP_DATE}.${XORGXRDP_COMMIT:0:7}-0ppa${PPA_REV}"
 sv="1.0~ppa${PPA_REV}"
 pkgs() { echo "xrdp ${xv}~${1}1"; echo "xorgxrdp ${ov}~${1}1"; echo "xrdp-desktop-sessions ${sv}~${1}1"; }
+# Resumable: packages already in the PPA (e.g. after a failed upload) are skipped; only a fully
+# released tag is refused.
+todo=0; done_=0
 for s in $SERIES; do
     while read -r src ver; do
         if ./lp-build-status.py --exists "$src" "$ver" >/dev/null; then
-            echo "release.sh: $src $ver already in $PPA; bump PPA_REV" >&2; exit 3; fi
+            echo "release.sh: skip (already in PPA): $src $ver"; done_=$((done_+1))
+        else todo=$((todo+1)); fi
     done < <(pkgs "$s")
 done
-echo "release.sh: $want for $SERIES: versions free"
+if [ "$todo" = 0 ]; then echo "release.sh: $want is fully released already; bump PPA_REV" >&2; exit 3; fi
+echo "release.sh: $want for $SERIES: $todo to upload, $done_ already in PPA"
 [ -n "$DRY" ] && exit 0
 first=${SERIES%% *}
 for s in $SERIES; do ./build-source.sh "$s" ${KEY:+--sign "$KEY"} >/dev/null; done

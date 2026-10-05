@@ -10,11 +10,21 @@ if [ -n "$ONLY" ]; then
     sel=; for c in $changes; do src=$(sed -n 's/^Source: //p' "$c"); case ",$ONLY," in *",$src,"*) sel="$sel $c";; esac; done
     changes=$sel
 fi
+# skip versions Launchpad already has (resumed release); exit 3 only if nothing is left to upload
+todo=
 for c in $changes; do
     src=$(sed -n 's/^Source: //p' "$c"); ver=$(sed -n 's/^Version: //p' "$c")
-    if ./lp-build-status.py --exists "$src" "$ver"; then
-        echo "upload.sh: $src $ver is already in $PPA; bump PPA_REV in pins.env" >&2; exit 3
-    fi
+    if ./lp-build-status.py --exists "$src" "$ver" >/dev/null; then echo "upload.sh: skip $src $ver (already in $PPA)"
+    else todo="$todo $c"; fi
 done
-[ -n "$CHECK" ] && { echo "upload.sh: $S ready to upload"; exit 0; }
-for c in $changes; do dput "$PPA" "$c"; done
+[ -n "$todo" ] || { echo "upload.sh: everything for $S is already in $PPA; bump PPA_REV in pins.env" >&2; exit 3; }
+[ -n "$CHECK" ] && { echo "upload.sh: $S ready to upload:$todo"; exit 0; }
+for c in $todo; do
+    # Launchpad's FTP sometimes answers 550 "internal server error": retry, forcing a re-upload
+    for try in 1 2 3; do
+        opts=(); [ "$try" -gt 1 ] && opts=(-f)
+        if dput "${opts[@]}" "$PPA" "$c"; then break; fi
+        [ "$try" = 3 ] && { echo "upload.sh: dput failed 3 times for $c" >&2; exit 1; }
+        echo "upload.sh: dput failed (try $try), retrying in 60 s" >&2; sleep 60
+    done
+done
