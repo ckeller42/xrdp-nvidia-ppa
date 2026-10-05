@@ -59,7 +59,7 @@ jobs:
       image: ubuntu:resolute   # piuparts is only packaged from resolute on; it debootstraps the target series
       options: --privileged    # chroot mounts /proc etc.
     steps:
-      - run: apt-get update -qq && apt-get install -y -qq --no-install-recommends piuparts debootstrap ca-certificates
+      - run: apt-get update -qq && apt-get install -y -qq --no-install-recommends piuparts debootstrap ca-certificates dpkg-dev
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
@@ -73,7 +73,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: debs
-      - name: secret scan (contents + maintainer scripts of every built deb)
+      - name: secret scan (text files + maintainer scripts of every built deb; gitleaks skips binaries)
         run: |
           mkdir -p unpacked
           for d in debs/*/*.deb; do x=unpacked/$(basename "$d" .deb); dpkg-deb -R "$d" "$x"; done

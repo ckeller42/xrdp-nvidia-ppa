@@ -2,21 +2,31 @@
 # Installed-package smoke test: start sesman + xrdp as the packaged config says (no systemd needed),
 # then do what every client does first: X.224 connection request asking for TLS, then a TLS handshake.
 set -eu
-mkdir -p /run/xrdp/sockdir && chown xrdp:xrdp /run/xrdp
-/usr/sbin/xrdp-sesman
-/usr/sbin/xrdp
 trap 'pkill -x xrdp || true; pkill -x xrdp-sesman || true' EXIT
+mkdir -p /run/xrdp/sockdir && chown xrdp:xrdp /run/xrdp
+rm -f /run/xrdp/*.pid
+/usr/sbin/xrdp-sesman
+for _ in $(seq 50); do [ -S /run/xrdp/sockdir/sesman.socket ] && break; sleep 0.2; done
+[ -S /run/xrdp/sockdir/sesman.socket ] || { echo "xrdp-sesman did not create its socket" >&2; exit 1; }
+/usr/sbin/xrdp
 python3 - <<'PY'
 import socket, ssl, struct, time
 neg = struct.pack("<BBHI", 0x01, 0x00, 8, 0x00000001)  # RDP_NEG_REQ: PROTOCOL_SSL
 x224 = bytes([len(neg) + 6, 0xE0, 0, 0, 0, 0, 0]) + neg
 tpkt = struct.pack(">BBH", 3, 0, len(x224) + 4) + x224
-for _ in range(50):
+for _ in range(100):
     try: s = socket.create_connection(("127.0.0.1", 3389), timeout=5); break
     except OSError: time.sleep(0.2)
 else: raise SystemExit("xrdp is not listening on 3389")
-s.sendall(tpkt); r = s.recv(1024)
-assert len(r) >= 19 and r[5] == 0xD0 and r[11] == 0x02, f"no X.224 confirm with TLS: {r.hex()}"
+s.sendall(tpkt)
+r = b""
+while len(r) < 4 or len(r) < struct.unpack(">H", r[2:4])[0]:   # whole TPKT (length in bytes 2-3)
+    chunk = s.recv(1024)
+    if not chunk: raise SystemExit(f"connection closed after {r.hex()}")
+    r += chunk
+assert len(r) >= 19 and r[5] == 0xD0 and r[11] == 0x02, f"no X.224 confirm with RDP_NEG_RSP: {r.hex()}"
+proto = struct.unpack("<I", r[15:19])[0]
+assert proto == 1, f"xrdp selected protocol {proto}, not TLS (1): is the key readable by xrdp (ssl-cert)?"
 ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT); ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE
 t = ctx.wrap_socket(s); print("OK:", t.version(), t.cipher()[0])
 PY

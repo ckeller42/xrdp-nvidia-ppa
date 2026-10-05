@@ -40,11 +40,13 @@ accepted() {  # series src... : wait until Launchpad accepted these sources of t
     done
     echo "release.sh: $* for $s not accepted after 60 min" >&2; return 4
 }
+up() {  # series only: upload; 3 = all already in the PPA (resumed release) is fine
+    ./upload.sh "$1" --only "$2" || [ $? = 3 ]
+}
 upload_all() {  # src... : first series (carries the orig), wait for acceptance, then the others
     local only; only=$(IFS=,; echo "$*")
-    up() { ./upload.sh "$1" --only "$only" || [ $? = 3 ]; }   # 3: all already in the PPA (resumed release)
-    up "$first"; accepted "$first" "$@"
-    for s in $SERIES; do [ "$s" = "$first" ] || up "$s"; done
+    up "$first" "$only"; accepted "$first" "$@"   # also after exit 3: confirms they are there
+    for s in $SERIES; do [ "$s" = "$first" ] || up "$s" "$only"; done
 }
 # Build-dependency chain inside this PPA: lvgl -> xrdp -> xorgxrdp. Upload each only once the one
 # before is built AND published, otherwise Launchpad parks it in "Dependency wait" for hours.

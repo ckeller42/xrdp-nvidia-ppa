@@ -1,5 +1,5 @@
 Description: pam: load pam_lastlog only if present
- pam_lastlog.so is gone from Ubuntu 24.04+ (and Debian trixie); every login then
+ pam_lastlog.so is gone from Ubuntu 24.04 and later; every login then
  logs "PAM unable to dlopen(pam_lastlog.so)". The '-' prefix skips a missing module
  silently and still uses it where it exists.
 Author: Dr. Christoph G. Keller <christoph.keller@gmx.net>

@@ -53,8 +53,9 @@ configure)
 	)
 	# xrdp runs as user xrdp (runtime_user): without ssl-cert it cannot read the snakeoil key and
 	# silently falls back to legacy RDP security (no TLS)
-	if [ "$(readlink -f /etc/xrdp/key.pem)" = /etc/ssl/private/ssl-cert-snakeoil.key ]; then
-		adduser --quiet xrdp ssl-cert
+	if [ "$(readlink -f /etc/xrdp/key.pem)" = /etc/ssl/private/ssl-cert-snakeoil.key ] &&
+	   ! id -nG xrdp | grep -qw ssl-cert; then
+		adduser --quiet xrdp ssl-cert || echo "W: could not add xrdp to ssl-cert; TLS needs a key readable by xrdp" >&2
 	fi
 
 	# Fix permissions and ownership for rsakeys.ini

@@ -13,8 +13,8 @@ echo "Checking if xrdp is properly configured to run in non-privileged mode..."
 echo "$ /usr/share/xrdp/xrdp-chkpriv"
 /usr/share/xrdp/xrdp-chkpriv | tee $AUTOPKGTEST_TMP/xrdp.out
 
-# runtime_user=xrdp needs SessionSockdirGroup=xrdp (sesman.ini), so this advisory WARN is expected
-if grep -v 'consider setting SessionSockdirGroup = root' $AUTOPKGTEST_TMP/xrdp.out \
+# runtime_user=xrdp needs SessionSockdirGroup=xrdp (sesman.ini), so exactly this advisory WARN is expected
+if grep -v -E '^\[ *WARN *\] .*SessionSockdirGroup' $AUTOPKGTEST_TMP/xrdp.out \
     | grep -q -E '\[ *(NG|WARN) *\]'; then
     echo "xrdp-chkpriv FAILED!" >&2
     exit 1
