@@ -41,8 +41,9 @@ accepted() {  # series src... : wait until Launchpad accepted these sources of t
 }
 upload_all() {  # src... : first series (carries the orig), wait for acceptance, then the others
     local only; only=$(IFS=,; echo "$*")
-    ./upload.sh "$first" --only "$only"; accepted "$first" "$@"
-    for s in $SERIES; do [ "$s" = "$first" ] || ./upload.sh "$s" --only "$only"; done
+    up() { ./upload.sh "$1" --only "$only" || [ $? = 3 ]; }   # 3: all already in the PPA (resumed release)
+    up "$first"; accepted "$first" "$@"
+    for s in $SERIES; do [ "$s" = "$first" ] || up "$s"; done
 }
 # xorgxrdp build-depends on this PPA's xrdp: upload it only once xrdp is built AND published,
 # otherwise Launchpad parks it in "Dependency wait" for hours.

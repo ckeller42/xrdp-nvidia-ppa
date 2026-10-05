@@ -27,7 +27,7 @@ EOS
 build_one() {  # src [extra-deb...]
   local src=$1; shift; local w=$B/$src
   mkdir -p "$w/extra" "$w/out"; [ $# -gt 0 ] && cp "$@" "$w/extra/"
-  dpkg-source -x "$O"/${src}_*.dsc "$w/src" >/dev/null
+  dpkg-source -x "$O"/${src}_*ppa"${PPA_REV}~${S}"1.dsc "$w/src" >/dev/null
   cp "$B/deps.sh" "$B/build.sh" "$w/"
   if [ "${CI_NO_PODMAN:-}" = 1 ]; then
     $SUDO ln -sfn "$w" /w
@@ -46,5 +46,5 @@ build_one() {  # src [extra-deb...]
 
 build_one xrdp
 build_one xorgxrdp "$O"/bin/xrdp_*_amd64.deb
-if ls "$O"/xrdp-desktop-sessions_*.dsc >/dev/null 2>&1; then build_one xrdp-desktop-sessions; fi
+if ls "$O"/xrdp-desktop-sessions_*ppa"${PPA_REV}~${S}"1.dsc >/dev/null 2>&1; then build_one xrdp-desktop-sessions; fi
 ls -1 "$O/bin"
