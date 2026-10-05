@@ -1,0 +1,3 @@
+usr/include/lvgl
+usr/lib/*/liblvgl.so
+usr/lib/*/pkgconfig/lvgl.pc

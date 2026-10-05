@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+include /usr/share/dpkg/architecture.mk
+
+%:
+	dh $@ --buildsystem=cmake
+
+# lv_conf.h (debian/) is compiled in and installed next to lvgl.h; it is the ABI of this build.
+# PRIVATE_API: 9.3's public headers include *_private.h, which are otherwise not installed.
+override_dh_auto_configure:
+	dh_auto_configure -- -DBUILD_SHARED_LIBS=ON -DLV_BUILD_CONF_DIR=$(CURDIR)/debian \
+	  -DCONFIG_LV_BUILD_DEMOS=OFF -DCONFIG_LV_BUILD_EXAMPLES=OFF -DCONFIG_LV_USE_THORVG_INTERNAL=OFF \
+	  -DCONFIG_LV_USE_PRIVATE_API=ON -DLIB_INSTALL_DIR=lib/$(DEB_HOST_MULTIARCH)
+
+# lvgl.pc names the multiarch libdir, so it belongs to the multiarch pkg-config dir
+override_dh_auto_install:
+	dh_auto_install
+	mkdir -p debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
+	mv debian/tmp/usr/share/pkgconfig/lvgl.pc debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/

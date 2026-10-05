@@ -1,0 +1,32 @@
+Source: lvgl
+Section: libs
+Priority: optional
+Maintainer: Dr. Christoph G. Keller <christoph.keller@gmx.net>
+Build-Depends: debhelper-compat (= 13), cmake, pkgconf, libfreetype-dev
+Standards-Version: 4.7.0
+Homepage: https://lvgl.io/
+Vcs-Browser: https://github.com/ckeller42/xrdp-nvidia-ppa
+Rules-Requires-Root: no
+
+Package: liblvgl9
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Light and Versatile Graphics Library (xrdp login build)
+ LVGL is a graphics library for embedded and desktop UIs with widgets,
+ animations and anti-aliased software rendering.
+ .
+ This build is configured for the xrdp LVGL login screen: 32-bit colour,
+ system heap, complex software renderer and FreeType fonts.
+
+Package: liblvgl-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: liblvgl9 (= ${binary:Version}), libfreetype-dev, ${misc:Depends}
+Description: Light and Versatile Graphics Library (xrdp login build) - development files
+ LVGL is a graphics library for embedded and desktop UIs with widgets,
+ animations and anti-aliased software rendering.
+ .
+ This package contains the headers, the lv_conf.h this library was built
+ with and the pkg-config file.

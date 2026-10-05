@@ -15,7 +15,8 @@ if [ -n "$TAG" ] && [ "$TAG" != "$want" ]; then echo "release.sh: tag $TAG != $w
 xv="${UPSTREAM_VERSION}+git${XRDP_DATE}.${XRDP_COMMIT:0:7}-0ppa${PPA_REV}"
 ov="1:${UPSTREAM_VERSION}+git${XORGXRDP_DATE}.${XORGXRDP_COMMIT:0:7}-0ppa${PPA_REV}"
 sv="1.0~ppa${PPA_REV}"
-pkgs() { echo "xrdp ${xv}~${1}1"; echo "xorgxrdp ${ov}~${1}1"; echo "xrdp-desktop-sessions ${sv}~${1}1"; }
+lv="${LVGL_VERSION}+ds-0ppa${PPA_REV}"
+pkgs() { echo "lvgl ${lv}~${1}1"; echo "xrdp ${xv}~${1}1"; echo "xorgxrdp ${ov}~${1}1"; echo "xrdp-desktop-sessions ${sv}~${1}1"; }
 # Resumable: packages already in the PPA (e.g. after a failed upload) are skipped; only a fully
 # released tag is refused.
 todo=0; done_=0
@@ -45,9 +46,11 @@ upload_all() {  # src... : first series (carries the orig), wait for acceptance,
     up "$first"; accepted "$first" "$@"
     for s in $SERIES; do [ "$s" = "$first" ] || up "$s"; done
 }
-# xorgxrdp build-depends on this PPA's xrdp: upload it only once xrdp is built AND published,
-# otherwise Launchpad parks it in "Dependency wait" for hours.
-upload_all xrdp xrdp-desktop-sessions
+# Build-dependency chain inside this PPA: lvgl -> xrdp -> xorgxrdp. Upload each only once the one
+# before is built AND published, otherwise Launchpad parks it in "Dependency wait" for hours.
+upload_all lvgl xrdp-desktop-sessions
+for s in $SERIES; do ./lp-build-status.py lvgl "${lv}~${s}1" --published-binary liblvgl-dev | tail -1; done
+upload_all xrdp
 for s in $SERIES; do ./lp-build-status.py xrdp "${xv}~${s}1" --published-binary xrdp | tail -1; done
 upload_all xorgxrdp
 rc=0

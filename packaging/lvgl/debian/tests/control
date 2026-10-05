@@ -1,0 +1,3 @@
+Tests: pkgconfig-consumer
+Depends: liblvgl-dev, build-essential, pkgconf, fonts-dejavu-core
+Restrictions: allow-stderr

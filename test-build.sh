@@ -44,7 +44,8 @@ build_one() {  # src [extra-deb...]
   cp "$w"/out/*.deb "$O/bin/"
 }
 
-build_one xrdp
-build_one xorgxrdp "$O"/bin/xrdp_*_amd64.deb
+build_one lvgl
+build_one xrdp "$O"/bin/liblvgl9_*.deb "$O"/bin/liblvgl-dev_*.deb   # xrdp's LVGL login
+build_one xorgxrdp "$O"/bin/xrdp_*_amd64.deb "$O"/bin/liblvgl9_*.deb
 if ls "$O"/xrdp-desktop-sessions_*ppa"${PPA_REV}~${S}"1.dsc >/dev/null 2>&1; then build_one xrdp-desktop-sessions; fi
 ls -1 "$O/bin"
