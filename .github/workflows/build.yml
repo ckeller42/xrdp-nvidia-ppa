@@ -30,6 +30,9 @@ jobs:
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: source packages
         run: tests/unit/build-source.sh ${{ matrix.series }}
+      - name: orig tarballs independent of umask (Launchpad needs identical bytes)
+        if: matrix.series == 'noble'
+        run: tests/unit/orig-reproducible.sh
       - name: binary packages
         run: tests/unit/test-build.sh ${{ matrix.series }}
       - name: lintian (errors fail)

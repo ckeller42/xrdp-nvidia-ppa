@@ -19,10 +19,10 @@ orig() {  # src commit date -> builds out/<src>_<ver>.orig.tar.xz once, prints v
     [ -d "$d/.git" ] || git clone -q https://github.com/neutrinolabs/$src.git "$d"
     git -C "$d" fetch -q origin "$commit"; git -C "$d" checkout -q -f "$commit"
     git -C "$d" submodule -q update --init --recursive
-    t=$(mktemp -d); mkdir "$t/$src-$ver"
-    git -C "$d" archive HEAD | tar -x -C "$t/$src-$ver"
+    t=$(mktemp -d); mkdir -m 775 "$t/$src-$ver"   # fixed mode: umask must not change the orig bytes
+    git -C "$d" archive HEAD | tar -x -p -C "$t/$src-$ver"   # -p: git's modes, not umask
     git -C "$d" submodule --quiet foreach --recursive \
-      "git archive HEAD | tar -x -C \"$t/$src-$ver/\$displaypath\""
+      "git archive HEAD | tar -x -p -C \"$t/$src-$ver/\$displaypath\""
     # reproducible tarball: same bytes on every machine for the same pin
     tar --sort=name --mtime="@$(git -C "$d" log -1 --format=%ct)" --owner=0 --group=0 --numeric-owner \
         -C "$t" -cf - "$src-$ver" | xz -9 -T1 > "$O/${src}_${ver}.orig.tar.xz"
