@@ -1,0 +1,34 @@
+From b659976710f5d25c730c7f279a3027862e2004fd Mon Sep 17 00:00:00 2001
+From: Christoph Keller <christoph.keller@gmx.net>
+Date: Mon, 5 Oct 2026 18:09:31 +0200
+Subject: [PATCH] xrdp: don't default the sesman port to obsolete 3350
+
+Without ListenPort in sesman.ini (the shipped default is commented out),
+xrdp_mm_get_sesman_port() kept its hardcoded "3350", so every login
+logged "Ignoring obsolete SCP port value '3350'" before falling back to
+the default socket. Default to "" like sesman does (NULL), which
+scp_port_to_unix_domain_path() maps to the default socket silently.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ xrdp/xrdp_mm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/xrdp/xrdp_mm.c b/xrdp/xrdp_mm.c
+index 46f38438..415a561b 100644
+--- a/xrdp/xrdp_mm.c
++++ b/xrdp/xrdp_mm.c
+@@ -2579,8 +2579,8 @@ xrdp_mm_get_sesman_port(char *port, int port_bytes)
+     struct list *values;
+ 
+     g_memset(cfg_file, 0, sizeof(char) * 256);
+-    /* default to port 3350 */
+-    strlcpy(port, "3350", port_bytes);
++    /* default: "" = the default socket, as in sesman (no obsolete port) */
++    strlcpy(port, "", port_bytes);
+     /* see if port is in sesman.ini file */
+     g_snprintf(cfg_file, 255, "%s/sesman.ini", XRDP_CFG_PATH);
+     fd = g_file_open_ro(cfg_file);
+-- 
+2.43.0
+
